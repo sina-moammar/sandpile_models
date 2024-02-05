@@ -63,30 +63,34 @@ class _MannaBaseClass:
             _graph.degree(node)
             for node in range(size)
         ])
-        del _graph
 
         neighbors_pos = (np.concatenate([
             [0],
             neighbors_len.cumsum()[:-1]
         ])).astype('int')
         
-        
         @nb.njit
         def _nb_drive(heights, steps: int, seed: int):
             if seed >= 0:
                 np.random.seed(seed)
             
-            aval_s = np.zeros(steps)
             size_s = np.zeros(steps)
+            area_s = np.zeros(steps)
+            time_s = np.zeros(steps)
+            is_visisted = np.zeros(size).astype('bool')
             
             for step in range(steps):
                 node = np.random.randint(size)
                 heights[node] += 1
                 avalanche_size = 0
+                is_visisted[:] = False
+                time = 0
                 unstable_points = np.where(heights > 1)[0]
                 unstable_heights = heights[unstable_points]
                 while len(unstable_points):
                     avalanche_size += len(unstable_points)
+                    is_visisted[unstable_points] = True
+                    time += 1
                     for cell, cell_height in zip(unstable_points, unstable_heights):
                         p = p_boundry[cell]
                         for _ in range(cell_height):
@@ -101,12 +105,12 @@ class _MannaBaseClass:
 
                     unstable_points = np.where(heights > 1)[0]
                     unstable_heights = heights[unstable_points]
-                size_s[step] = np.sum(heights)
-                aval_s[step] = avalanche_size
-                
-            return aval_s, size_s
-        
+                size_s[step] = avalanche_size
+                area_s[step] = np.sum(is_visisted)
+                time_s[step] = time
+            return size_s, area_s, time_s
         self._drive = _nb_drive
+        del _graph, neighbors, neighbors_len, neighbors_pos
         
     def drive(self, steps: int, seed: int = -1):
         return self._drive(self.heights, steps, seed)
