@@ -138,6 +138,10 @@ class _MannaBaseClass:
     @property
     def alpha(self):
         return self._alpha
+    
+    @property
+    def energy(self):
+        return np.sum(self.heights)
 
 
 class Manna(_MannaBaseClass):
