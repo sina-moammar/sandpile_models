@@ -110,6 +110,7 @@ class _MannaBaseClass:
                 time_s[step] = time
             return size_s, area_s, time_s
         self._drive = _nb_drive
+        self._drive(self.heights, 0, -1)
         del _graph, neighbors, neighbors_len, neighbors_pos
         
     def drive(self, steps: int, seed: int = -1):
