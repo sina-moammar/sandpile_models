@@ -11,10 +11,11 @@ warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
 
 class _MannaBaseClass:
     def __init__(
-        self, p_boundry: list, length: int, dimension: int, periodic: bool,
-        f_random: float, alpha: float, p_fill: float,
+        self, p_boundry: list, length: int, abelian: bool, dimension: int,
+        periodic: bool, f_random: float, alpha: float, p_fill: float,
     ) -> None:
         self._length = length
+        self._abelian = abelian
         self._dimension = dimension
         size = length ** dimension
         self._size = size
@@ -93,7 +94,8 @@ class _MannaBaseClass:
                     time += 1
                     for cell, cell_height in zip(unstable_points, unstable_heights):
                         p = p_boundry[cell]
-                        for _ in range(cell_height):
+                        toppled_height = 2 if abelian else cell_height
+                        for _ in range(toppled_height):
                             if p == 0 or np.random.rand() > p:
                                 neigh = neighbors[
                                     neighbors_pos[cell] + np.random.randint(
@@ -101,7 +103,7 @@ class _MannaBaseClass:
                                     )
                                 ]
                                 heights[neigh] += 1
-                        heights[cell] -= cell_height
+                        heights[cell] -= toppled_height
 
                     unstable_points = np.where(heights > 1)[0]
                     unstable_heights = heights[unstable_points]
@@ -119,6 +121,10 @@ class _MannaBaseClass:
     @property
     def length(self):
         return self._length
+    
+    @property
+    def abelian(self):
+        return self._abelian
     
     @property
     def dimension(self):
@@ -147,7 +153,7 @@ class _MannaBaseClass:
 
 class Manna(_MannaBaseClass):
     def __init__(
-        self, length: int, dimension: int = 2, f_random: float = 0.,
+        self, length: int, abelian: bool = True, dimension: int = 2, f_random: float = 0.,
         alpha: float = 0., p_fill: float = 0.,
     ) -> None:
         p_boundry = np.zeros([length] * dimension)
@@ -163,22 +169,22 @@ class Manna(_MannaBaseClass):
         p_boundry /= (2 * dimension)
         p_boundry = p_boundry.flatten()
         super().__init__(
-            p_boundry=p_boundry, length=length, dimension=dimension, periodic=False,
-            f_random=f_random, alpha=alpha, p_fill=p_fill,
+            p_boundry=p_boundry, length=length, abelian=abelian, dimension=dimension,
+            periodic=False, f_random=f_random, alpha=alpha, p_fill=p_fill,
         )
 
     
 class BulkDissipativeManna(_MannaBaseClass):
     def __init__(
-        self, p_diss: float, length: int, dimension: int = 2, periodic: bool = False,
-        f_random: float = 0., alpha: float = 0., p_fill: float = 0.
+        self, p_diss: float, length: int, abelian: bool = True, dimension: int = 2,
+        periodic: bool = False, f_random: float = 0., alpha: float = 0., p_fill: float = 0.
     ) -> None:
         self._p_diss = p_diss
         p_boundry = np.ones([length] * dimension) * p_diss
         p_boundry = p_boundry.flatten()
         super().__init__(
-            p_boundry=p_boundry, length=length, dimension=dimension, periodic=periodic,
-            f_random=f_random, alpha=alpha, p_fill=p_fill,
+            p_boundry=p_boundry, length=length, abelian=abelian, dimension=dimension,
+            periodic=periodic, f_random=f_random, alpha=alpha, p_fill=p_fill,
         )
         
     @property
@@ -188,16 +194,16 @@ class BulkDissipativeManna(_MannaBaseClass):
         
 class BoundryDissipativeManna(_MannaBaseClass):
     def __init__(
-        self, p_diss: float, length: int, dimension: int = 2, periodic: bool = False,
-        f_random: float = 0., alpha: float = 0., p_fill: float = 0.
+        self, p_diss: float, length: int, abelian: bool = True, dimension: int = 2,
+        periodic: bool = False, f_random: float = 0., alpha: float = 0., p_fill: float = 0.
     ) -> None:
         self._p_diss = p_diss
         p_boundry = np.ones([length] * dimension) * p_diss
         p_boundry[*[slice(1, length - 1)] * dimension] = 0
         p_boundry = p_boundry.flatten()
         super().__init__(
-            p_boundry=p_boundry, length=length, dimension=dimension, periodic=periodic,
-            f_random=f_random, alpha=alpha, p_fill=p_fill,
+            p_boundry=p_boundry, length=length, abelian=abelian, dimension=dimension,
+            periodic=periodic, f_random=f_random, alpha=alpha, p_fill=p_fill,
         )
         
     @property
