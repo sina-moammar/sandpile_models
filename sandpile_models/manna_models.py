@@ -78,6 +78,7 @@ class _MannaBaseClass:
             size_s = np.zeros(steps)
             area_s = np.zeros(steps)
             time_s = np.zeros(steps)
+            is_conservative_s = np.ones(steps).astype('bool')
             is_visisted = np.zeros(size).astype('bool')
             
             for step in range(steps):
@@ -103,6 +104,8 @@ class _MannaBaseClass:
                                     )
                                 ]
                                 heights[neigh] += 1
+                            else:
+                                is_conservative_s[step] = False
                         heights[cell] -= toppled_height
 
                     unstable_points = np.where(heights > 1)[0]
@@ -110,7 +113,7 @@ class _MannaBaseClass:
                 size_s[step] = avalanche_size
                 area_s[step] = np.sum(is_visisted)
                 time_s[step] = time
-            return size_s, area_s, time_s
+            return size_s, area_s, time_s, is_conservative_s
         self._drive = _nb_drive
         self._drive(self.heights, 0, -1)
         del _graph, neighbors, neighbors_len, neighbors_pos
@@ -149,6 +152,10 @@ class _MannaBaseClass:
     @property
     def energy(self):
         return np.sum(self.heights)
+    
+    @property
+    def grid(self):
+        return self.heights.reshape([self.length] * self.dimension)
 
 
 class Manna(_MannaBaseClass):
